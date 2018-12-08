@@ -1,0 +1,40 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+repositories {
+    jcenter()
+}
+
+
+mainClassName = 'Main'
+
+dependencies {
+  compile 'org.xerial:sqlite-jdbc:3.7.2'
+  compile files('myutils.jar') 
+}
+
+ext.appdir = file(/D:\Core Files\Adobe\ProgrammingComputer Books\non-book materials\Booklist app\bookdir\app/)
+
+task install(type: Copy, dependsOn:installDist) {
+  def libdir = file(new File(installDist.destinationDir, 'lib')) 
+  from libdir
+  into appdir
+  
+  doLast {
+     new File(appdir, 'run.cmd').text = """
+  @echo off
+  setlocal 
+  
+  set SELF_DIR=%~dp0..
+  
+  java %JAVA_OPTS% -cp \"%~dp0${String.join(';%~dp0', libdir.list())}\" ${mainClassName} %*
+  
+  """.stripIndent()
+  } 
+}
+
+jar {
+  exclude '*.fxgraph'
+}
+
+defaultTasks 'install'
